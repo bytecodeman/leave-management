@@ -6,17 +6,22 @@ using AutoMapper;
 using leave_management.Contracts;
 using leave_management.Data;
 using leave_management.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
+using Microsoft.AspNetCore.Identity;
+
+
 namespace leave_management.Controllers
 {
+    [Authorize(Roles = "Administator")]
     public class LeaveTypesController : Controller
     {
         private readonly ILeaveTypeRepository _repo;
         private readonly IMapper _mapper;
 
-        public LeaveTypesController(ILeaveTypeRepository repo, IMapper mapper) 
+        public LeaveTypesController(ILeaveTypeRepository repo, IMapper mapper)
         {
             this._repo = repo;
             this._mapper = mapper;
@@ -25,9 +30,17 @@ namespace leave_management.Controllers
         // GET: LeaveTypes
         public ActionResult Index()
         {
-            var leaveTypes = _repo.FindAll().ToList();
-            var model = _mapper.Map<List<LeaveType>, List<LeaveTypeVM>>(leaveTypes);
-            return View(model);
+            if (User.IsInRole("Administrator"))
+            {
+                var leaveTypes = _repo.FindAll().ToList();
+                var model = _mapper.Map<List<LeaveType>, List<LeaveTypeVM>>(leaveTypes);
+                return View(model);
+            }
+            else
+            {
+                ModelState.AddModelError("", "Not an administrator ...");
+                return View();
+            }
         }
 
         // GET: LeaveTypes/Details/5
@@ -59,10 +72,10 @@ namespace leave_management.Controllers
                 {
                     return View(model);
                 }
-                
+
                 var leaveType = _mapper.Map<LeaveType>(model);
                 leaveType.DateCreated = DateTime.Now;
-                
+
                 var isSuccess = _repo.Create(leaveType);
                 if (!isSuccess)
                 {
@@ -112,7 +125,7 @@ namespace leave_management.Controllers
                     ModelState.AddModelError("", "Something went Wrong ...");
                     return View(model);
                 }
-                
+
                 return RedirectToAction(nameof(Index));
             }
             catch
