@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace leave_management.Controllers
 {
-    [Authorize(Roles = "Administator")]
+    [Authorize(Roles = "Administrator")]
     public class LeaveTypesController : Controller
     {
         private readonly ILeaveTypeRepository _repo;
@@ -58,7 +58,9 @@ namespace leave_management.Controllers
         // GET: LeaveTypes/Create
         public ActionResult Create()
         {
-            return View();
+            var vm = new LeaveTypeVM();
+            vm.DefaultDays = 12;
+            return View(vm);
         }
 
         // POST: LeaveTypes/Create
